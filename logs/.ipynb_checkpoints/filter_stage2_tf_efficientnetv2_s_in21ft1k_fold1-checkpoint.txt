@@ -1,0 +1,2 @@
+Sat Oct 14 11:02:40 2023 Fold 1, Epoch 1, lr: 0.0001000, train loss: 0.46013, valid loss: 0.42692, metric: 0.762931.
+Sat Oct 14 13:03:53 2023 Fold 1, Epoch 2, lr: 0.0000981, train loss: 0.40079, valid loss: 0.42043, metric: 0.744631.
