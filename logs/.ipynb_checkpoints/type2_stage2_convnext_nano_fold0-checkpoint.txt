@@ -1,0 +1,1 @@
+Mon Oct  2 17:00:27 2023 Fold 0, Epoch 1, lr: 0.0002300, train loss: 0.41186, valid loss: 0.67110, metric: 0.671105.

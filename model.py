@@ -1,54 +1,78 @@
-import timm
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
-def gem(x, p=3, eps=1e-6):
-    return F.avg_pool2d(x.clamp(min=eps).pow(p), (x.size(-2), x.size(-1))).pow(1.0 / p)
-
-
-class GeM(nn.Module):
-    def __init__(self, p=3, eps=1e-6, p_trainable=False):
-        super(GeM, self).__init__()
-        if p_trainable:
-            self.p = Parameter(torch.ones(1) * p)
-        else:
-            self.p = p
-        self.eps = eps
-
-    def forward(self, x):
-        ret = gem(x, p=self.p, eps=self.eps)
-        return ret
-
-    def __repr__(self):
-        return (self.__class__.__name__  + f"(p={self.p.data.tolist()[0]:.4f},eps={self.eps})")
-    
-    
-class RsnaModel(nn.Module):
+class SliceNet(nn.Module):
     def __init__(self, cfg):
         super().__init__()
+        self.output_type = ['infer', 'loss']
         self.cfg = cfg
-        self.n_classes = len(cfg.classes)
-        self.backbone = timm.create_model(cfg.backbone, pretrained=cfg.pretrained,
-                num_classes=0, global_pool='', in_chans=self.cfg.in_channels)
-        backbone_out = self.backbone.feature_info[-1]['num_chs']
-        self.global_pool = GeM(p_trainable=False)
-        backbone_out = 1280
-        self.head = torch.nn.Linear(backbone_out, self.n_classes)
-        self.loss_fn = nn.BCEWithLogitsLoss()
-   
+        self.encoder_in_dim = 3
+
+        self.encoder = resnet18d(pretrained=False, in_chans=self.encoder_in_dim)
+
+
+        #----------------------------------------------------
+        self.norm = nn.LayerNorm(512)
+        self.pos_embed = nn.Parameter(
+            positional_encoding(32, 512)
+        )
+        self.decoder = nn.Sequential(
+            TransformerBlock(512,8),
+            TransformerBlock(512,8),
+            TransformerBlock(512,8),
+        )
+
+        #----------------------------------------------------
+        self.slice_logit = nn.Linear(512, 1) 
+
+
+    def infer(self, image):
+        batch_size, D, H, W = image.shape
+        x = image.reshape(batch_size*D//self.encoder_in_dim, self.encoder_in_dim, H, W )
+
+        f = self.encoder.forward_features(x)
+        _,d,h,w = f.shape
+        pool = F.adaptive_avg_pool2d(f, 1)
+        pool = pool.flatten(1)
+        p = pool.reshape(batch_size,-1,d)
+
+        #------
+        embed = self.norm(p) + self.pos_embed
+        d = self.decoder(embed)
+
+        slice_logit = self.slice_logit(d).squeeze(-1)
+        slice_prob = F.sigmoid(slice_logit)
+        slice_prob = F.interpolate(slice_prob.unsqueeze(1), size=(D,), mode='linear', align_corners=False).squeeze(1)
+
+        return slice_prob
+
+
+class MainNet(nn.Module):
+    def __init__(self, cfg=None):
+        super().__init__()
+        self.liver_logit = nn.Linear()
+        self.spleen_logit = nn.Linear()
+        self.kidney_logit = nn.Linear()
+
     def forward(self, batch):
-        x = batch['input']
-        x = self.backbone(x)
-        x = self.global_pool(x)
-        x = x[:, :, 0, 0]
-        
-        logits = self.head(x)
-        outputs = {}
-        if self.training:
-            loss = self.loss_fn(logits, batch['target'].float())
-            outputs['loss'] = loss
-        else:
-            outputs['logits'] = logits
-        return outputs
+
+        image = batch['image']
+        batch_size, D, H, W = image.shape  #(B, 96, 256, 256)
+
+        ... 
+        f = self.encoder.forward_features(x)
+        ....
+        ....
+        f = self.decoder(f)
+        flatten = f.mean(dim=[2,3,4]) # pool
+        split = torch.split_with_sizes(flatten, batch['num_series'])
+        pool  = torch.stack([
+            p.max(0)[0] + p.mean(0)
+            for p in split])
+
+        liver_logit  = self.liver_logit(pool)
+        spleen_logit = self.spleen_logit(pool)
+        kidney_logit = self.kidney_logit(pool)
+        ...
+

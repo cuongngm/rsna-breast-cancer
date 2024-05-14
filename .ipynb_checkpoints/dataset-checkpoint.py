@@ -117,19 +117,4 @@ def load_dicomsdl_dir(dcm_dir, slice_range=None):
     return image, (dz,dy,dx)
 
 
-class RsnaDataset():
-    def __init__(self, cfg, fold=0, mode='train'):
-        super().__init__()
-        self.df = pd.read_csv('data/fold/{}_fold_{}.csv'.format(mode, fold))
-        self.mode = model
-        self.batch_size = cfg.batch_size
-
-    def __len__(self):
-        return self.df.shape[0]
-
-    def __getitem__(self, idx):
-        image_info = self.df.iloc[idx]
-        image_path = image_info['path']
-        target = 
-        
 # image --> load_dicomsdl_dir: 839, 512, 512

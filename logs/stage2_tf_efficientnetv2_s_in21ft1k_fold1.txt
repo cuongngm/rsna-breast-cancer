@@ -1,0 +1,9 @@
+Thu Sep 28 20:16:07 2023 Fold 1, Epoch 1, lr: 0.0002300, train loss: 0.38539, valid loss: 0.39946, metric: 0.399459.
+Thu Sep 28 21:53:50 2023 Fold 1, Epoch 2, lr: 0.0002299, train loss: 0.37704, valid loss: 0.40060, metric: 0.400598.
+Thu Sep 28 23:31:32 2023 Fold 1, Epoch 3, lr: 0.0002296, train loss: 0.37903, valid loss: 0.39653, metric: 0.396531.
+Fri Sep 29 01:09:14 2023 Fold 1, Epoch 4, lr: 0.0002292, train loss: 0.37487, valid loss: 0.39908, metric: 0.399077.
+Fri Sep 29 02:46:57 2023 Fold 1, Epoch 5, lr: 0.0002286, train loss: 0.37477, valid loss: 0.39522, metric: 0.395221.
+Fri Sep 29 04:24:40 2023 Fold 1, Epoch 6, lr: 0.0002277, train loss: 0.37424, valid loss: 0.39892, metric: 0.398922.
+Fri Sep 29 06:02:21 2023 Fold 1, Epoch 7, lr: 0.0002267, train loss: 0.37419, valid loss: 0.39554, metric: 0.395536.
+Fri Sep 29 07:40:00 2023 Fold 1, Epoch 8, lr: 0.0002256, train loss: 0.37233, valid loss: 0.39475, metric: 0.394749.
+Fri Sep 29 09:17:42 2023 Fold 1, Epoch 9, lr: 0.0002242, train loss: 0.37177, valid loss: 0.39565, metric: 0.395652.
